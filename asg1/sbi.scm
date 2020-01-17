@@ -66,3 +66,100 @@
     (main (vector->list (current-command-line-arguments)))
     (printf "sbi.scm: interactive mode~n"))
 
+
+(define *function-table* (make-hash))
+(define (function-get key)
+        (hash-ref *function-table* key))
+(define (symbol-put! key value)
+         (hash-set! *symbol-table* key value))
+
+(for-each
+    (lambda (pair) (hash-set! *function-table* (car pair) (cadr pair)))
+    `(
+        (abs       ,abs)
+        (acos      ,acos)
+        (asin      ,asin )
+        (atan      ,atan)
+        (ceil      ,ceiling)
+        (cos       ,cos)
+        (exp       ,exp)
+        (floor     ,floor)
+        (log       ,log )
+        (round     ,round)
+        (sin       ,sin)
+        (sqrt      ,sqrt)
+        (tan       ,tan)
+        (truncate  ,truncate)
+        (dim       ,interpret-dim)
+        (let       ,interpret-let)
+        (goto      ,interpret-goto)
+        (if        ,interpret-if)
+        (print     ,interpret-print)
+        (input     ,interpret-input)
+     ))
+
+
+(define *variable-table* (make-hash))
+(define (variable-get key)
+        (hash-ref *variable-table* key `(0)))
+(define (symbol-put! key value)
+         (hash-set! *symbol-table* key value))
+
+(for-each
+    (lambda (varval)
+        (hash-set! *variable-table* (car varval) (cadr varval)))
+    `(
+        (eof 0.0)
+        (pi  ,(acos -1.0))
+        (e   ,(exp 1.0))
+     ))
+
+(define NAN (/ 0.0 0.0))
+
+(define *array-table* (make-hash))
+
+
+
+(define *label-table* (make-hash))
+;(define label
+    ;(lambda (program)
+  ;when program is not null
+    ;if there is a label
+     ; insert table with key:label, value:program 
+    ;call helper on (cdr program)
+
+
+
+
+    ;)
+
+
+
+(define (interpret-program program)
+    (printf "interp-prog: len program: ~a ~n" (len program))
+    ;;(cond (not (null? )
+           ;;function-get 
+
+
+
+     ;;)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
