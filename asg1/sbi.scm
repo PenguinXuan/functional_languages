@@ -1,4 +1,4 @@
-#!/afs/cats.ucsc.edu/courses/cse112-wm/usr/racket/bin/mzscheme -qr
+#!/Applications/racket/bin/mzscheme -qr
 ;; $Id: sbi.scm,v 1.12 2020-01-08 17:13:13-08 - - $
 ;;
 ;; NAME
@@ -47,90 +47,76 @@
          (when (not (eq? token eof)) (dump-stdin))))
 
 
-(define (write-program-by-line filename program)
-    (printf "==================================================~n")
-    (printf "~a: ~s~n" *run-file* filename)
-    (printf "==================================================~n")
-    (printf "(~n")
-    (for-each (lambda (line) (printf "~s~n" line)) program)
-    (printf ")~n")
-    (interpret-program program)
-    )
-
-(define (main arglist)
-    (if (or (null? arglist) (not (null? (cdr arglist))))
-        (usage-exit)
-        (let* ((sbprogfile (car arglist))
-               (program (readlist-from-inputfile sbprogfile)))
-              (write-program-by-line sbprogfile program))))
-
-(if (terminal-port? *stdin*)
-    (main (vector->list (current-command-line-arguments)))
-    (printf "sbi.scm: interactive mode~n"))
 
 
-(define *function-table* (make-hash)
+
+(define *function-table* (make-hash))
 (for-each
-    (lambda (pair) (hash-set! *function-table* (car pair) (cadr pair)))
-    `(
-        (+         ,+)
-        (-         ,-)
-        (*         ,*)
-        (/         ,/)
-        (^         ,expt)
-        (sqrt      ,sqrt)
-        (abs       ,abs)
-        (acos      ,acos)
-        (asin      ,asin )
-        (atan      ,atan)
-        (ceil      ,ceiling)
-        (cos       ,cos)
-        (exp       ,exp)
-        (floor     ,floor)
-        (log       ,log )
-        (round     ,round)
-        (sin       ,sin)
-        (sqrt      ,sqrt)
-        (tan       ,tan)
-        (truncate  ,truncate)
-        (dim       ,interpret-dim)
-        (let       ,interpret-let)
-        (goto      ,interpret-goto)
-        (if        ,interpret-if)
-        (print     ,interpret-print)
-        (input     ,interpret-input)
-     ))
+  (lambda (pair) (hash-set! *function-table* (car pair) (cadr pair)))
+  `(
+    (+         ,+)
+    (-         ,-)
+    (*         ,*)
+    (/         ,/)
+    (^         ,expt)
+    (sqrt      ,sqrt)
+    (abs       ,abs)
+    (acos      ,acos)
+    (asin      ,asin )
+    (atan      ,atan)
+    (ceil      ,ceiling)
+    (cos       ,cos)
+    (exp       ,exp)
+    (floor     ,floor)
+    (log       ,log )
+    (round     ,round)
+    (sin       ,sin)
+    (sqrt      ,sqrt)
+    (tan       ,tan)
+    (truncate  ,truncate)
+    #|
+    (dim       ,interpret-dim)
+    (let       ,interpret-let)
+    (goto      ,interpret-goto)
+    (if        ,interpret-if)
+    (print     ,interpret-print)
+    (input     ,interpret-input)|#))
 
 
-(define *variable-table* (make-hash)
-    (for-each
-    (lambda (varval) (hash-set! *variable-table* (car varval) (cadr varval)))
-    `(
-        (eof 0.0)
-        (pi  ,(acos -1.0))
-        (e   ,(exp 1.0))
-     ))
+(define *variable-table* (make-hash))
+(for-each
+  (lambda (varval) (hash-set! *variable-table* (car varval) (cadr varval)))
+  `(
+    (pi  ,(acos -1.0))
+    (e   ,(exp 1.0))
+    ))
+
+(define *label-table* (make-hash))
+
+(define (evaluate-labels program)
+  (unless (null? program)
+    (let ((n (caar program)))
+      (when (number? n)
+        (if (not (null? (cdar program)))
+          (if (not (symbol? (cadar program)))
+            (void)
+            (begin
+              (hash-set! *label-table* (cadar program) (caar program))))
+          (void))))
+    (evaluate-labels (cdr program))))
 
 
-(define *array-table* (make-hash))
+(define (show label it)
+  (display label)
+  (display " = ")
+  (display it)
+  (newline)
+)
 
 
 
-(define *label-table* (make-hash)
-(define (eval-labels program)
-    (unless (null? program)
-        (let n (caar program)
-            (printf "interp-prog: len program: ~a ~n" (caar program))
-            (when (number? n)
-                (if (not (null? (cdar program)))
-                    (printf "interp-prog: len program: ~a ~n" (cdar program))
-                    (if (not (symbol? (cadar program)))
-                        (void)
-                        (begin
-                            (hash-set! (cadar program) (caar program))
-                            ))
-                    (void))))
-        (eval-labels (cdr program))))
+
+
     
 
 
@@ -146,7 +132,7 @@
 
 
 
-(define interpret-input )
+;;(define interpret-input )
 
 ;;(newline)
 
@@ -163,29 +149,40 @@
      ;;)
 ;;}
 
-(define NAN (/ 0.0 0.0))
+;;(define (evaluate-expression expr)
+  ;;  (cond ((number? expr) (+ expr 0.0)
+    ;;      ((symbol? expr) (hash-ref *variable-table* expr NAN))
+      ;;    ((pair? expr)
+        ;;      (let ((func (hash-ref *function-table* (car expr) NAN))
+          ;;          (opnds (map evaluate-expression (cdr expr))))
+            ;;       (if (null? func) NAN
+              ;;         (apply func (map evaluate-expression opnds)))))
+            ;;(else NAN)))
 
-(define (evaluate-expression expr)
-    (cond ((number? expr) (+ expr 0.0)
-          ((symbol? expr) (hash-ref *variable-table* expr NAN))
-          ((pair? expr)
-              (let ((func (hash-ref *function-table* (car expr) NAN))
-                    (opnds (map evaluate-expression (cdr expr))))
-                   (if (null? func) NAN
-                       (apply func (map evaluate-expression opnds)))))
-            (else NAN)))
+(define (write-program-by-line filename program)
+    (printf "==================================================~n")
+    (printf "~a: ~s~n" *run-file* filename)
+    (printf "==================================================~n")
+    (printf "(~n")
+    (for-each (lambda (line) (printf "~s~n" line)) program)
+    (printf ")~n")
+    (evaluate-labels program)
+    (hash-for-each *label-table* (lambda (key value) (show key value)))
+    (newline)
+    ;;(interpret-program program)
+    )
 
 
+(define (main arglist)
+    (if (or (null? arglist) (not (null? (cdr arglist))))
+        (usage-exit)
+        (let* ((sbprogfile (car arglist))
+               (program (readlist-from-inputfile sbprogfile)))
+              (write-program-by-line sbprogfile program))))
 
-
-
-
-
-
-
-
-
-
+(if (terminal-port? *stdin*)
+    (main (vector->list (current-command-line-arguments)))
+    (printf "sbi.scm: interactive mode~n"))
 
 
 
