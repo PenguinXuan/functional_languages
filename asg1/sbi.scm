@@ -53,7 +53,9 @@
     (printf "==================================================~n")
     (printf "(~n")
     (for-each (lambda (line) (printf "~s~n" line)) program)
-    (printf ")~n"))
+    (printf ")~n")
+    (interpret-program program)
+    )
 
 (define (main arglist)
     (if (or (null? arglist) (not (null? (cdr arglist))))
@@ -67,15 +69,16 @@
     (printf "sbi.scm: interactive mode~n"))
 
 
-(define *function-table* (make-hash))
-(define (function-get key)
-        (hash-ref *function-table* key))
-(define (symbol-put! key value)
-         (hash-set! *symbol-table* key value))
-
+(define *function-table* (make-hash)
 (for-each
     (lambda (pair) (hash-set! *function-table* (car pair) (cadr pair)))
     `(
+        (+         ,+)
+        (-         ,-)
+        (*         ,*)
+        (/         ,/)
+        (^         ,expt)
+        (sqrt      ,sqrt)
         (abs       ,abs)
         (acos      ,acos)
         (asin      ,asin )
@@ -99,30 +102,38 @@
      ))
 
 
-(define *variable-table* (make-hash))
-(define (variable-get key)
-        (hash-ref *variable-table* key `(0)))
-(define (symbol-put! key value)
-         (hash-set! *symbol-table* key value))
-
-(for-each
-    (lambda (varval)
-        (hash-set! *variable-table* (car varval) (cadr varval)))
+(define *variable-table* (make-hash)
+    (for-each
+    (lambda (varval) (hash-set! *variable-table* (car varval) (cadr varval)))
     `(
         (eof 0.0)
         (pi  ,(acos -1.0))
         (e   ,(exp 1.0))
      ))
 
-(define NAN (/ 0.0 0.0))
 
 (define *array-table* (make-hash))
 
 
 
-(define *label-table* (make-hash))
-;(define label
-    ;(lambda (program)
+(define *label-table* (make-hash)
+(define (eval-labels program)
+    (unless (null? program)
+        (let n (caar program)
+            (printf "interp-prog: len program: ~a ~n" (caar program))
+            (when (number? n)
+                (if (not (null? (cdar program)))
+                    (printf "interp-prog: len program: ~a ~n" (cdar program))
+                    (if (not (symbol? (cadar program)))
+                        (void)
+                        (begin
+                            (hash-set! (cadar program) (caar program))
+                            ))
+                    (void))))
+        (eval-labels (cdr program))))
+    
+
+
   ;when program is not null
     ;if there is a label
      ; insert table with key:label, value:program 
@@ -135,15 +146,35 @@
 
 
 
-(define (interpret-program program)
-    (printf "interp-prog: len program: ~a ~n" (len program))
+(define interpret-input )
+
+;;(newline)
+
+;;(define (interpret-program program n)
+    ;;(printf "interp-prog: len program: ~a ~n" (len program))
+    ;;(if (< n (length program))
+      ;;  (begin
+        ;;    (let ((line (list-ref program n))))
+          ;;  )
+        ;;)
     ;;(cond (not (null? )
            ;;function-get 
 
-
-
      ;;)
-}
+;;}
+
+(define NAN (/ 0.0 0.0))
+
+(define (evaluate-expression expr)
+    (cond ((number? expr) (+ expr 0.0)
+          ((symbol? expr) (hash-ref *variable-table* expr NAN))
+          ((pair? expr)
+              (let ((func (hash-ref *function-table* (car expr) NAN))
+                    (opnds (map evaluate-expression (cdr expr))))
+                   (if (null? func) NAN
+                       (apply func (map evaluate-expression opnds)))))
+            (else NAN)))
+
 
 
 
