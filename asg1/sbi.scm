@@ -1,4 +1,5 @@
-#!/Applications/racket/bin/mzscheme -qr
+#!/afs/cats.ucsc.edu/courses/cse112-wm/usr/racket/bin/mzscheme -qr
+;;#!/Applications/racket/bin/mzscheme -qr
 ;; $Id: sbi.scm,v 1.12 2020-01-08 17:13:13-08 - - $
 ;;
 ;; NAME
