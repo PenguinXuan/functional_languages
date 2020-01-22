@@ -241,6 +241,7 @@
               (evaluate-labels program)
               (interpret-program program 0))))
 
-(if (terminal-port? *stdin*)
-    (main (vector->list (current-command-line-arguments)))
-    (printf "sbi.scm: interactive mode~n"))
+;;(if (terminal-port? *stdin*)
+    ;;(main (vector->list (current-command-line-arguments)))
+    ;;(printf "sbi.scm: interactive mode~n"))
+(main (vector->list (current-command-line-arguments)))
