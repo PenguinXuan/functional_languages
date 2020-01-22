@@ -81,23 +81,23 @@
   ;;(display (car statement))
   (if (pair? (car statement))
     (begin
-      ;;(display (hash-ref *array-table* (cadar statement)))
-      ;;(display (- (exact-round (hash-ref *variable-table* (caddar statement))) 1))
-      ;;(display (evaluate-expression (cadr statement))))
       (vector-set! (hash-ref *array-table* (cadar statement)) 
         (exact-round (hash-ref *variable-table* (caddar statement)))
         (evaluate-expression (cadr statement))))
     (hash-set! *variable-table* (car statement) 
       (evaluate-expression (cadr statement))))
-  ;;(hash-for-each *variable-table* (lambda (key value) (show key value)))
+  ;;(hash-for-each *variable-table* 
+  ;;(lambda (key value) (show key value)))
   ;;(newline)
   )
 
 (define (interpret-dim statement)
   ;;(display (evaluate-expression (caddar statement)))
   (hash-set! *array-table* (cadar statement) 
-    (make-vector (exact-round (evaluate-expression (caddar statement))) 0.0)))
-  ;;(hash-for-each *array-table* (lambda (key value) (show key value)))
+    (make-vector 
+      (exact-round (evaluate-expression (caddar statement))) 0.0)))
+  ;;(hash-for-each *array-table* 
+  ;;(lambda (key value) (show key value)))
   ;;(newline))
 
 (define (interpret-goto program statement)
@@ -117,8 +117,10 @@
       (hash-set! *variable-table* (car statement) (void))
       (let ((object (read)))
         ;;(printf "~a~n" object)
-        (cond ((eof-object? object) ((hash-set! *variable-table* eof 1) (exit 1)))
-          ((number? object) (hash-set! *variable-table* (car statement) object))
+        (cond ((eof-object? object) 
+          ((hash-set! *variable-table* eof 1) (exit 1)))
+          ((number? object) 
+            (hash-set! *variable-table* (car statement) object))
         (else NAN)))
       (unless (null? (cdr statement))
         (interpret-input. (cdr statement)))))
@@ -126,7 +128,8 @@
 
 
 (for-each
-  (lambda (pair) (hash-set! *function-table* (car pair) (cadr pair)))
+  (lambda (pair) 
+    (hash-set! *function-table* (car pair) (cadr pair)))
   `(
     (+         ,+)
     (-         ,-)
@@ -153,7 +156,8 @@
     (<         ,(lambda (x y) (< x y)))
     (>         ,(lambda (x y) (> x y)))
     (=         ,(lambda (x y) (eqv? x y)))
-    (!=        ,(lambda (x y) (not (eqv? (evaluate-expression x) (evaluate-expression y)))))
+    (!=        ,(lambda (x y) 
+      (not (eqv? (evaluate-expression x) (evaluate-expression y)))))
     (dim       ,interpret-dim)
     (let       ,interpret-let)
     (goto      ,interpret-goto)
@@ -162,7 +166,8 @@
     (input     ,interpret-input)))
 
 (for-each
-  (lambda (varval) (hash-set! *variable-table* (car varval) (cadr varval)))
+  (lambda (varval)
+    (hash-set! *variable-table* (car varval) (cadr varval)))
   `(
     (pi  ,(acos -1.0))
     (e   ,(exp 1.0))
@@ -175,7 +180,8 @@
       (when (number? n)
         (if (not (null? (cdar program)))
           (if (symbol? (cadar program))
-            (hash-set! *label-table* (cadar program) (caar program))
+            (hash-set! 
+              *label-table* (cadar program) (caar program))
             (void))
           (void))))
     (evaluate-labels (cdr program))))
@@ -198,7 +204,8 @@
             (interpret-if program statement)
             (interpret-program program (+ line-num 1))))
         (else
-          ((hash-ref *function-table* (car statement)) (cdr statement))
+          ((hash-ref 
+            *function-table* (car statement)) (cdr statement))
           (interpret-program program (+ line-num 1)))))
     (exit 1)
     ))
