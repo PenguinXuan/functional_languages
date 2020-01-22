@@ -1,5 +1,5 @@
-#!/afs/cats.ucsc.edu/courses/cse112-wm/usr/racket/bin/mzscheme -qr
-;;#!/Applications/racket/bin/mzscheme -qr
+#!/Applications/racket/bin/mzscheme -qr
+;;!/afs/cats.ucsc.edu/courses/cse112-wm/usr/racket/bin/mzscheme -qr
 ;; $Id: sbi.scm,v 1.12 2020-01-08 17:13:13-08 - - $
 ;;
 ;; NAME
@@ -12,41 +12,6 @@
 ;;    The file mentioned in argv[1] is read and assumed to be an SBIR
 ;;    program, which is the executed.  Currently it is only printed.
 ;;
-
-(define *stdin* (current-input-port))
-(define *stdout* (current-output-port))
-(define *stderr* (current-error-port))
-
-(define *run-file*
-    (let-values
-        (((dirpath basepath root?)
-            (split-path (find-system-path 'run-file))))
-        (path->string basepath))
-)
-
-(define (die list)
-    (for-each (lambda (item) (display item *stderr*)) list)
-    (newline *stderr*)
-    (exit 1)
-)
-
-(define (usage-exit)
-    (die `("Usage: " ,*run-file* " filename"))
-)
-
-(define (readlist-from-inputfile filename)
-    (let ((inputfile (open-input-file filename)))
-         (if (not (input-port? inputfile))
-             (die `(,*run-file* ": " ,filename ": open failed"))
-             (let ((program (read inputfile)))
-                  (close-input-port inputfile)
-                         program))))
-
-(define (dump-stdin)
-    (let ((token (read)))
-         (printf "token=~a~n" token)
-         (when (not (eq? token eof)) (dump-stdin))))
-
 
 (define *function-table* (make-hash))
 (define *variable-table* (make-hash))
@@ -111,22 +76,28 @@
   (interpret-program program 
     (- (hash-ref *label-table* (caddr statement)) 1)))
 
+(define (readnumber)
+  (let ((object (read)))
+    (cond ((eof-object? object) object)
+                   ((number? object) (+ object 0.0))
+                   (else (begin (printf "invalid number: ~a~n" object)
+                                (readnumber))))))
 
-(define (interpret-input statement)
-  (define (interpret-input. statement)
-    (unless (null? (car statement))
-      (hash-set! *variable-table* (car statement) (void))
-      (let ((object (read)))
-        ;;(printf "~a~n" object)
-        (cond ((eof-object? object) 
-          ((hash-set! *variable-table* eof 1) (exit 1)))
-          ((number? object) 
-            (hash-set! *variable-table* (car statement) object))
-        (else NAN)))
-      (unless (null? (cdr statement))
-        (interpret-input. (cdr statement)))))
-  (interpret-input. statement))
-
+(define (interpret-input statement) 
+  (unless (null? statement)
+    (let ((number (readnumber)))
+      (if (eof-object? number)
+        (begin
+          (printf "*EOF* ~a~n" number) 
+          (hash-set! *variable-table* 'eof 1)
+          ;(hash-for-each *variable-table* 
+            ;(lambda (key value) (show key value))) 
+          ;(newline)
+          )
+        (begin
+          ;;(printf "number = ~a~n" number)
+          (hash-set! *variable-table* (car statement) number)
+          (interpret-input (cdr statement)))))))                
 
 (for-each
   (lambda (pair) 
@@ -172,7 +143,6 @@
   `(
     (pi  ,(acos -1.0))
     (e   ,(exp 1.0))
-    (eof   0.0)
     ))
 
 (define (evaluate-labels program)
@@ -208,8 +178,7 @@
           ((hash-ref 
             *function-table* (car statement)) (cdr statement))
           (interpret-program program (+ line-num 1)))))
-    (exit 1)
-    ))
+    (exit 1)))
 
 (define (interpret-program program line-num)
   (when (< line-num (length program))
@@ -221,6 +190,39 @@
           (interpret-statement (cadr line) program line-num))
         (else
           (interpret-program program (+ line-num 1)))))))
+
+(define *stdin* (current-input-port))
+(define *stdout* (current-output-port))
+(define *stderr* (current-error-port))
+
+(define *run-file*
+    (let-values
+        (((dirpath basepath root?)
+            (split-path (find-system-path 'run-file))))
+        (path->string basepath))
+)
+
+(define (die list)
+    (for-each (lambda (item) (display item *stderr*)) list)
+    (newline *stderr*)
+    (exit 1)
+)
+
+(define (usage-exit)
+    (die `("Usage: " ,*run-file* " filename"))
+)
+
+(define (readlist-from-inputfile filename)
+    (let ((inputfile (open-input-file filename)))
+         (if (not (input-port? inputfile))
+             (die `(,*run-file* ": " ,filename ": open failed"))
+             (let ((program (read inputfile)))
+                  (close-input-port inputfile)
+                         program))))
+(define (dump-stdin)
+    (let ((token (read)))
+         (printf "token=~a~n" token)
+         (when (not (eq? token eof)) (dump-stdin))))
 
 (define (write-program-by-line filename program)
     (printf "==================================================~n")
