@@ -1,5 +1,5 @@
-#!/afs/cats.ucsc.edu/courses/cse112-wm/usr/racket/bin/mzscheme -qr
-;;!/Applications/racket/bin/mzscheme -qr
+#!/Applications/racket/bin/mzscheme -qr
+;;#!/afs/cats.ucsc.edu/courses/cse112-wm/usr/racket/bin/mzscheme -qr
 ;; $Id: sbi.scm,v 1.12 2020-01-08 17:13:13-08 - - $
 ;;
 ;; NAME
@@ -84,6 +84,7 @@
                                 (readnumber))))))
 
 (define (interpret-input statement) 
+  ;;(display statement)
   (unless (null? statement)
     (let ((number (readnumber)))
       (if (eof-object? number)
@@ -143,6 +144,7 @@
   `(
     (pi  ,(acos -1.0))
     (e   ,(exp 1.0))
+    (eof   0)
     ))
 
 (define (evaluate-labels program)
@@ -165,6 +167,7 @@
 )
 
 (define (interpret-statement statement program line-num)
+  ;;(display statement)  
   (if (not (null? statement))
     (begin
       (cond
