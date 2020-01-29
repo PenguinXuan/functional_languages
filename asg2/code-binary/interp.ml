@@ -32,7 +32,6 @@ and interp_stmt (stmt : Absyn.stmt) (continuation : Absyn.program) =
     match stmt with
     | Dim (ident, expr) -> interp_dim ident expr continuation
     | Let (memref, expr) -> interp_let memref expr continuation
-    (*no_stmt "Let (memref, expr)" continuation*)
     | Goto label -> no_stmt "Goto label" continuation
     | If (expr, label) -> no_stmt "If (expr, label)" continuation
     | Print print_list -> interp_print print_list continuation
@@ -41,10 +40,12 @@ and interp_stmt (stmt : Absyn.stmt) (continuation : Absyn.program) =
 and interp_let (memref : Absyn.memref)
                (expr : Absyn.expr)
                (continuation : Absyn.program) =
-    let v = eval_expr expr 
+    (let v = (eval_expr expr)
     in match memref with
        | Arrayref (ident, expr) -> Array.set (Hashtbl.find Tables.array_table ident) (int_of_float (eval_expr expr)) v
-       | Variable (ident)-> Hashtbl.add Tables.variable_table ident (eval_expr expr);
+       (*Array.iter(fun e -> Printf.printf "%.2f\n" e) (Hashtbl.find Tables.array_table ident)*)
+       | Variable (ident)-> Hashtbl.add Tables.variable_table ident (eval_expr expr));
+    (*Hashtbl.iter (fun x y -> Printf.printf "%s -> %.2f\n" x y) Tables.array_table;*)
     interpret continuation
 
 and interp_dim (ident : string)
