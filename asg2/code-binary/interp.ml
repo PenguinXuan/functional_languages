@@ -32,7 +32,7 @@ and interp_stmt (stmt : Absyn.stmt) (continuation : Absyn.program) =
     match stmt with
     | Dim (ident, expr) -> interp_dim ident expr continuation
     | Let (memref, expr) -> interp_let memref expr continuation
-    | Goto label -> no_stmt "Goto label" continuation
+    | Goto label -> interp_goto label continuation
     | If (expr, label) -> no_stmt "If (expr, label)" continuation
     | Print print_list -> interp_print print_list continuation
     | Input memref_list -> interp_input memref_list continuation
@@ -49,12 +49,18 @@ and interp_let (memref : Absyn.memref)
     interpret continuation
 
 and interp_dim (ident : string)
-                  (expr : Absyn.expr)
-                  (continuation : Absyn.program) = 
-
+               (expr : Absyn.expr)
+               (continuation : Absyn.program) = 
     (*Printf.printf "%s\n" ident;*)
     Hashtbl.add Tables.array_table ident (Array.make (int_of_float (eval_expr expr)) 0.0);
     interpret continuation
+
+and interp_goto (label : string)
+                (continuation : Absyn.program) =
+    interpret (Hashtbl.find Tables.label_table label)
+
+
+
 
 and interp_print (print_list : Absyn.printable list)
                  (continuation : Absyn.program) =
