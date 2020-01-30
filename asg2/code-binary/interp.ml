@@ -16,10 +16,14 @@ let rec eval_expr (expr : Absyn.expr) : float = match expr with
     | Number number -> number
     | Memref memref -> (match memref with
                        | Arrayref (ident, expr) -> Array.get 
-                       (Hashtbl.find Tables.array_table ident) (int_of_float (eval_expr expr))
-                       | Variable (ident)-> Hashtbl.find Tables.variable_table ident)
-    | Unary (oper, expr) -> (Hashtbl.find Tables.unary_fn_table oper) (eval_expr expr)
-    | Binary (oper, expr1, expr2) -> (Hashtbl.find Tables.binary_fn_table oper) 
+                       (Hashtbl.find Tables.array_table ident) 
+                       (int_of_float (eval_expr expr))
+                       | Variable (ident)-> Hashtbl.find 
+                     Tables.variable_table ident)
+    | Unary (oper, expr) -> (Hashtbl.find Tables.unary_fn_table oper) 
+    (eval_expr expr)
+    | Binary (oper, expr1, expr2) -> 
+    (Hashtbl.find Tables.binary_fn_table oper) 
     (eval_expr expr1) (eval_expr expr2)
 
 let rec interpret (program : Absyn.program) =
@@ -43,9 +47,11 @@ and interp_let (memref : Absyn.memref)
                (continuation : Absyn.program) =
     (let v = (eval_expr expr)
     in match memref with
-       | Arrayref (ident, expr) -> Array.set (Hashtbl.find Tables.array_table ident) 
+       | Arrayref (ident, expr) -> 
+       Array.set (Hashtbl.find Tables.array_table ident) 
        (int_of_float (eval_expr expr)) v
-       | Variable (ident)-> Hashtbl.add Tables.variable_table ident (eval_expr expr));
+       | Variable (ident)-> 
+       Hashtbl.add Tables.variable_table ident (eval_expr expr));
     interpret continuation
 
 and interp_dim (ident : string)
@@ -91,7 +97,8 @@ and interp_input (memref_list : Absyn.memref list)
                     let arr = Hashtbl.find Tables.array_table i in
                     let idx = int_of_float (eval_expr e) in
                     Array.set arr idx number
-                | Variable i -> Hashtbl.add Tables.variable_table i number);
+                | Variable i -> 
+              Hashtbl.add Tables.variable_table i number);
                 (*print_float number;
                 print_newline ()*))
         with End_of_file -> 
