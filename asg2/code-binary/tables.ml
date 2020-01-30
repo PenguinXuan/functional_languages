@@ -45,7 +45,13 @@ let _ = List.iter (fun (label, value) ->
                   "*", ( *.);
                   "/", (/.);
                   "%", mod_float;
-                  "^", ( ** )]
+                  "^", ( ** );
+                  "=", (fun x y -> if x = y then 1. else 0.);
+                  "!=", (fun x y -> if x <> y then 1. else 0.);
+                  "<", (fun x y -> if x < y then 1. else 0.);
+                  "<=", (fun x y -> if x <= y then 1. else 0.);
+                  ">", (fun x y -> if x > y then 1. else 0.);
+                  ">=", (fun x y -> if x >= y then 1. else 0.)]
 
 
 let label_table : label_table_t = Hashtbl.create 16
