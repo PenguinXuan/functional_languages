@@ -46,16 +46,16 @@ printTime(TimeInHours) :-
 writepath([]) :-
     nl.
 
- writepath([flight(Node, NextNode, time(Hours, Minutes)) | Tail]) :-
+ writepath([flight(Node, Next, time(Hours, Minutes)) | Tail]) :-
     airport(Node, Departure, _, _),
-    airport(NextNode, Arrival, _, _),
+    airport(Next, Arrival, _, _),
     write(' '), write('depart '), write(Node),
     write(' '), write(Departure), write(' '),
     timeInHours(time(Hours, Minutes), DepartureTimeInHours),
     printTime(DepartureTimeInHours),nl,
-    write(' '), write('arrive '), write(NextNode),
+    write(' '), write('arrive '), write(Next),
     write(' '), write(Arrival), write(' '),
-    flightTime(Node, NextNode, TimeInHours),
+    flightTime(Node, Next, TimeInHours),
     ArrivalTime is DepartureTimeInHours + TimeInHours,
     printTime(ArrivalTime), nl,
     writepath(Tail).
@@ -84,7 +84,7 @@ listpath(Node, End,
    not(member(Next, TempTried)),
    not(Next = PrevArrival),
    listpath(Next, End, 
-           [flight(Node, NextNode, time(H2,M2)) | TempTried], List).
+           [flight(Node, Next, time(H2,M2)) | TempTried], List).
 
 fly(Departure, Arrival) :-
     listpath(Departure, Arrival, List),
