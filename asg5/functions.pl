@@ -67,7 +67,8 @@ listpath(Node, End, [flight(Node, Next, Time) | Outlist]) :-
 
 listpath(Node, Node, _, []).
 
-listpath(Node, End, [flight(PrevNode, PrevArrival, time(H1, M1)) | Tried], 
+listpath(Node, End,
+        [flight(PrevNode, PrevArrival, time(H1, M1)) | Tried], 
         [flight(Node, Next, time(H2, M2)) | List]) :-
    flight(Node, Next, time(H2, M2)),
    flightTime(PrevNode, PrevArrival, T1),
@@ -78,10 +79,12 @@ listpath(Node, End, [flight(PrevNode, PrevArrival, time(H1, M1)) | Tried],
    TransitTime =< NextDepartureTimeInHours,
    flightTime(Node, Next, T2),
    T2 + NextDepartureTimeInHours < 24.0,
-   TempTried = append([flight(PrevNode, PrevArrival, time(H1, M1))], Tried),
+   TempTried = append([flight(PrevNode, 
+                       PrevArrival, time(H1, M1))], Tried),
    not(member(Next, TempTried)),
    not(Next = PrevArrival),
-   listpath(Next, End, [flight(Node, NextNode, time(H2,M2)) | TempTried], List).
+   listpath(Next, End, 
+           [flight(Node, NextNode, time(H2,M2)) | TempTried], List).
 
 fly(Departure, Arrival) :-
     listpath(Departure, Arrival, List),
